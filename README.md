@@ -12,12 +12,10 @@ If you are using Tampermonkey, remember to enable Developer Mode in Chrome! - [t
 
 ### Set Your Default Country (Optional)
 
-You can set your default country by editing the script. For example:
+You can set your default country by editing the script. This small feature highlights your country code, making it easier to spot. For example:
 
 ```js
 const YOUR_COUNTRY_CODE = 'GB';
 ```
-
-This small feature highlights your country code, making it easier to spot.
 
 ![](images/highlight.png)
