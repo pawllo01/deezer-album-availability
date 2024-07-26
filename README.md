@@ -10,6 +10,8 @@ Install [the script](https://github.com/pawllo01/deezer-album-availability/raw/m
 
 If you are using Tampermonkey, remember to enable Developer Mode in Chrome! - [tutorial](https://www.tampermonkey.net/faq.php?locale=en#Q209)
 
+https://github.com/user-attachments/assets/def60702-08ef-451e-981c-327666806646
+
 ### Set Your Default Country (Optional)
 
 You can set your default country by editing the script. This small feature highlights your country code, making it easier to spot. For example:
