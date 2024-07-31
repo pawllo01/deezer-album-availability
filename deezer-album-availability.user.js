@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Deezer Album Availability
 // @namespace    https://github.com/pawllo01/deezer-album-availability
-// @version      1.0
+// @version      1.1
 // @description  Show in which countries the album is available and in which it is unavailable.
 // @author       pawllo01
 // @match        https://www.deezer.com/*
@@ -292,12 +292,22 @@
   async function app() {
     if (location.pathname.includes('/album/')) {
       const albumId = location.pathname.split('/')[3];
-      const avalabilityElement = await createAvailabilityElement(albumId);
+      const albumData = await getAlbumData(albumId);
+      const avalabilityElement = createAvailabilityElement(albumData);
 
       const intervalId = setInterval(() => {
         const albumContainer = document.querySelector('div.container');
         if (albumContainer) {
           clearInterval(intervalId);
+
+          // label & upc
+          document.querySelector('div.catalog-legal-notice').insertAdjacentHTML(
+            'beforeend',
+            `<p>Label: ${albumData.label}</p>
+             <p>UPC: ${albumData.upc}</p>`
+          );
+
+          // album availability
           albumContainer.insertAdjacentHTML('beforeend', avalabilityElement);
           embedGeoChart(albumContainer);
         }
@@ -305,10 +315,8 @@
     }
   }
 
-  async function createAvailabilityElement(albumId) {
-    const metaElements = [...(await fetchMetaElements(albumId))];
-
-    unavailableCountries = metaElements
+  function createAvailabilityElement(albumData) {
+    unavailableCountries = albumData.metaElements
       .map((country) => country?.content)
       .filter((country) => country !== 'AN'); // https://en.wikipedia.org/wiki/ISO_3166-2:AN
 
@@ -345,12 +353,22 @@
     </div>`;
   }
 
-  async function fetchMetaElements(albumId) {
+  async function getAlbumData(albumId) {
     try {
       const res = await fetch(`https://www.deezer.com/en/album/${albumId}`);
       const html = await res.text();
       const doc = new DOMParser().parseFromString(html, 'text/html');
-      return doc.querySelectorAll('meta[property="og:restrictions:country:disallowed"]');
+
+      eval(doc.querySelector('body script').textContent); // window.__DZR_APP_STATE__ = {...}
+      const albumData = window.__DZR_APP_STATE__.DATA;
+
+      return {
+        metaElements: [
+          ...doc.querySelectorAll('meta[property="og:restrictions:country:disallowed"]'),
+        ],
+        label: albumData?.LABEL_NAME,
+        upc: albumData?.UPC,
+      };
     } catch (error) {
       console.log(error);
     }
