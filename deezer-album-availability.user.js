@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Deezer Album Availability
 // @namespace    https://github.com/pawllo01/deezer-album-availability
-// @version      1.1
+// @version      1.2
 // @description  Show in which countries the album is available and in which it is unavailable.
 // @author       pawllo01
 // @match        https://www.deezer.com/*
@@ -266,8 +266,7 @@
     'ZW',
   ];
 
-  let unavailableCountries;
-
+  // load GeoChart script
   // https://gist.github.com/jpcaparas/e8257fca97e2fad44a43c34668810244
   GM_xmlhttpRequest({
     method: 'GET',
@@ -279,6 +278,7 @@
     },
   });
 
+  // observe URL change
   // https://stackoverflow.com/questions/53303519/detect-an-url-change-in-a-spa
   let previousUrl = '';
   const observer = new MutationObserver(() => {
@@ -293,8 +293,10 @@
     if (location.pathname.includes('/album/')) {
       const albumId = location.pathname.split('/')[3];
       const albumData = await getAlbumData(albumId);
-      const avalabilityElement = createAvailabilityElement(albumData);
+      const albumAvailability = getAlbumAvailability(albumData);
+      const avalabilityElement = createAvailabilityElement(albumAvailability);
 
+      // embed data
       const intervalId = setInterval(() => {
         const albumContainer = document.querySelector('div.container');
         if (albumContainer) {
@@ -309,21 +311,46 @@
 
           // album availability
           albumContainer.insertAdjacentHTML('beforeend', avalabilityElement);
-          embedGeoChart(albumContainer);
+          embedGeoChart(albumAvailability, albumContainer);
         }
       }, 200);
     }
   }
 
-  function createAvailabilityElement(albumData) {
-    unavailableCountries = albumData.metaElements
-      .map((country) => country?.content)
+  async function getAlbumData(albumId) {
+    try {
+      const res = await fetch(`https://www.deezer.com/en/album/${albumId}`);
+      const html = await res.text();
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+
+      eval(doc.querySelector('body script').textContent); // window.__DZR_APP_STATE__ = {...}
+      const albumData = window.__DZR_APP_STATE__.DATA;
+
+      return {
+        label: albumData?.LABEL_NAME,
+        upc: albumData?.UPC,
+        metaElements: [
+          ...doc.querySelectorAll('meta[property="og:restrictions:country:disallowed"]'),
+        ],
+      };
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  function getAlbumAvailability(albumData) {
+    const unavailableCountries = albumData.metaElements
+      .map((country) => country.content)
       .filter((country) => country !== 'AN'); // https://en.wikipedia.org/wiki/ISO_3166-2:AN
 
     const availableCountries = COUNTRIES.filter(
       (country) => !unavailableCountries.includes(country)
     );
 
+    return { unavailableCountries, availableCountries };
+  }
+
+  function createAvailabilityElement(albumAvailability) {
     const countriesStyle = objectStyleToString({
       'font-family': 'monospace',
       'font-size': '0.9rem',
@@ -340,38 +367,17 @@
       <p style="${countriesStyle}">${countries
       .join(', ')
       .replace(
-        YOUR_COUNTRY_CODE,
-        `<span style="${highlightStyle}">${YOUR_COUNTRY_CODE}</span>`
+        YOUR_COUNTRY_CODE.toUpperCase(),
+        `<span style="${highlightStyle}">${YOUR_COUNTRY_CODE.toUpperCase()}</span>`
       )}</p>
     </div>`;
 
     return `
     <div>
     <h2 class="chakra-heading css-uae1qr" data-testid="section_title">Album Availability</h2>
-      ${createCountryList('Available in', availableCountries)}
-      ${createCountryList('Unavailable in', unavailableCountries)}
+      ${createCountryList('Available in', albumAvailability.availableCountries)}
+      ${createCountryList('Unavailable in', albumAvailability.unavailableCountries)}
     </div>`;
-  }
-
-  async function getAlbumData(albumId) {
-    try {
-      const res = await fetch(`https://www.deezer.com/en/album/${albumId}`);
-      const html = await res.text();
-      const doc = new DOMParser().parseFromString(html, 'text/html');
-
-      eval(doc.querySelector('body script').textContent); // window.__DZR_APP_STATE__ = {...}
-      const albumData = window.__DZR_APP_STATE__.DATA;
-
-      return {
-        metaElements: [
-          ...doc.querySelectorAll('meta[property="og:restrictions:country:disallowed"]'),
-        ],
-        label: albumData?.LABEL_NAME,
-        upc: albumData?.UPC,
-      };
-    } catch (error) {
-      console.log(error);
-    }
   }
 
   function objectStyleToString(style) {
@@ -381,14 +387,17 @@
   }
 
   // https://developers.google.com/chart/interactive/docs/gallery/geochart?hl=en
-  function embedGeoChart(albumContainer) {
+  function embedGeoChart(albumAvailability, albumContainer) {
     google.charts.load('current', { packages: ['geochart'] });
     google.charts.setOnLoadCallback(drawRegionsMap);
 
     function drawRegionsMap() {
       const data = google.visualization.arrayToDataTable([
         ['Country', 'Available'],
-        ...COUNTRIES.map((country) => [country, unavailableCountries.includes(country) ? 0 : 1]),
+        ...COUNTRIES.map((country) => [
+          country,
+          albumAvailability.unavailableCountries.includes(country) ? 0 : 1,
+        ]),
       ]);
 
       const options = {
