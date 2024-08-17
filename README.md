@@ -24,6 +24,7 @@ const YOUR_COUNTRY_CODE = 'GB';
 
 ## Script Changelog
 
+- 1.4 - improve GeoChart script loading
 - 1.3 - add full country names
 - 1.2 - code improvements
 - 1.1 - add label & upc info
