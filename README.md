@@ -21,3 +21,10 @@ const YOUR_COUNTRY_CODE = 'GB';
 ```
 
 ![](images/highlight.png)
+
+## Script Changelog
+
+- 1.3 - add full country names
+- 1.2 - code improvements
+- 1.1 - add label & upc info
+- 1.0 - initial release
