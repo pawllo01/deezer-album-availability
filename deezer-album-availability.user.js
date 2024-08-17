@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         Deezer Album Availability
 // @namespace    https://github.com/pawllo01/deezer-album-availability
-// @version      1.3
+// @version      1.4
 // @description  Show in which countries the album is available and in which it is unavailable.
 // @author       pawllo01
 // @match        https://www.deezer.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=deezer.com
-// @grant        GM_xmlhttpRequest
+// @grant        none
 // ==/UserScript==
 
 (function () {
@@ -266,17 +266,10 @@
     ZW: 'Zimbabwe',
   };
 
-  // load GeoChart script
-  // https://gist.github.com/jpcaparas/e8257fca97e2fad44a43c34668810244
-  GM_xmlhttpRequest({
-    method: 'GET',
-    url: 'https://www.gstatic.com/charts/loader.js',
-    onload: (ev) => {
-      let e = document.createElement('script');
-      e.innerText = ev.responseText;
-      document.head.appendChild(e);
-    },
-  });
+  // add GeoChart script
+  const geoChartScript = document.createElement('script');
+  geoChartScript.src = 'https://www.gstatic.com/charts/loader.js';
+  document.head.appendChild(geoChartScript);
 
   // observe URL change
   // https://stackoverflow.com/questions/53303519/detect-an-url-change-in-a-spa
