@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Deezer Album Availability
 // @namespace    https://github.com/pawllo01/deezer-album-availability
-// @version      1.4
+// @version      1.5
 // @description  Show in which countries the album is available and in which it is unavailable.
 // @author       pawllo01
 // @match        https://www.deezer.com/*
@@ -269,7 +269,7 @@
   // add GeoChart script
   const geoChartScript = document.createElement('script');
   geoChartScript.src = 'https://www.gstatic.com/charts/loader.js';
-  document.head.appendChild(geoChartScript);
+  document.head.append(geoChartScript);
 
   // observe URL change
   // https://stackoverflow.com/questions/53303519/detect-an-url-change-in-a-spa
@@ -286,12 +286,15 @@
     if (location.pathname.includes('/album/')) {
       const albumId = location.pathname.split('/')[3];
       const albumData = await getAlbumData(albumId);
-      const albumAvailability = getAlbumAvailability(albumData);
-      const avalabilityElement = createAvailabilityElement(albumAvailability);
+      if (!albumData) return;
+      const albumCountries = getAlbumCountries(albumData);
+      const avalabilityElement = createAvailabilityElement(albumCountries);
 
       // embed data
       const intervalId = setInterval(() => {
         const albumContainer = document.querySelector('div.container');
+        console.log('waiting for the albumContainer...');
+
         if (albumContainer) {
           clearInterval(intervalId);
 
@@ -304,7 +307,7 @@
 
           // album availability
           albumContainer.insertAdjacentHTML('beforeend', avalabilityElement);
-          embedGeoChart(albumAvailability, albumContainer);
+          embedGeoChart(albumCountries, albumContainer);
         }
       }, 200);
     }
@@ -327,11 +330,12 @@
         ],
       };
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      return null;
     }
   }
 
-  function getAlbumAvailability(albumData) {
+  function getAlbumCountries(albumData) {
     const unavailableCountries = albumData.metaElements
       .map((country) => country.content)
       .filter((country) => country !== 'AN'); // https://en.wikipedia.org/wiki/ISO_3166-2:AN
@@ -340,10 +344,10 @@
       (country) => !unavailableCountries.includes(country)
     );
 
-    return { unavailableCountries, availableCountries };
+    return { availableCountries, unavailableCountries };
   }
 
-  function createAvailabilityElement(albumAvailability) {
+  function createAvailabilityElement(albumCountries) {
     const countriesStyle = objectStyleToString({
       'font-family': 'monospace',
       'font-size': '0.9rem',
@@ -359,8 +363,7 @@
         const highlight =
           country === YOUR_COUNTRY_CODE.toUpperCase() ? `style="${highlightStyle}"` : '';
 
-        return `
-          <span title="${COUNTRIES[country]}" ${highlight}>${country}</span>`;
+        return `<span title="${COUNTRIES[country]}" ${highlight}>${country}</span>`;
       });
 
       return `
@@ -373,8 +376,8 @@
     return `
       <div>
         <h2 class="chakra-heading css-uae1qr" data-testid="section_title">Album Availability</h2>
-        ${createCountryList('Available in', albumAvailability.availableCountries)}
-        ${createCountryList('Unavailable in', albumAvailability.unavailableCountries)}
+        ${createCountryList('Available in', albumCountries.availableCountries)}
+        ${createCountryList('Unavailable in', albumCountries.unavailableCountries)}
       </div>`;
   }
 
@@ -385,7 +388,7 @@
   }
 
   // https://developers.google.com/chart/interactive/docs/gallery/geochart?hl=en
-  function embedGeoChart(albumAvailability, albumContainer) {
+  function embedGeoChart(albumCountries, albumContainer) {
     google.charts.load('current', { packages: ['geochart'] });
     google.charts.setOnLoadCallback(drawRegionsMap);
 
@@ -394,13 +397,18 @@
         ['Country ISO', 'Country Name', { role: 'tooltip' }],
         ...Object.entries(COUNTRIES).map(([iso, name]) => [
           iso,
-          albumAvailability.unavailableCountries.includes(iso) ? 0 : 1,
-          `${name} ${albumAvailability.unavailableCountries.includes(iso) ? '❌' : '✅'}`,
+          albumCountries.unavailableCountries.includes(iso) ? 0 : 1,
+          `${name} ${albumCountries.unavailableCountries.includes(iso) ? '❌' : '✅'}`,
         ]),
       ]);
 
+      const colors =
+        albumCountries.availableCountries.length === 0
+          ? ['#df3c3c'] // red
+          : ['#df3c3c', '#00b23d']; // red, green
+
       const options = {
-        colorAxis: { colors: ['#df3c3c', '#00b23d'] }, // red, green
+        colorAxis: { colors },
         backgroundColor: 'transparent',
         legend: 'none',
       };
