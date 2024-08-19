@@ -1,6 +1,6 @@
 # Deezer Album Availability
 
-Show in which countries the album is available and in which it is unavailable.
+Show in which countries the album is available and in which it is unavailable. Additionally, show the label and UPC code.
 
 ![](images/example.png)
 
