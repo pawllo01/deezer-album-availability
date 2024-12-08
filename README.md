@@ -1,6 +1,6 @@
 # Deezer Album Availability
 
-Show in which countries the album is available and in which it is unavailable. Additionally, show the label and UPC code.
+Show in which countries the album is available and in which it is unavailable. Additionally, show the label and UPC code. The script is also available for Spotify [here](https://github.com/pawllo01/spotify-album-availability).
 
 ![](images/example.png)
 
