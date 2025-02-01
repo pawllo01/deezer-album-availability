@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Deezer Album Availability
 // @namespace    https://github.com/pawllo01/deezer-album-availability
-// @version      1.5
+// @version      1.6
 // @description  Show in which countries the album is available and in which it is unavailable.
 // @author       pawllo01
 // @match        https://www.deezer.com/*
@@ -12,8 +12,12 @@
 (function () {
   'use strict';
 
+  // SETTINGS
   const YOUR_COUNTRY_CODE = '';
+  const showMusicBrainzLookup = false;
+  const showWorldMap = true;
 
+  // countries
   const COUNTRIES = {
     AD: 'Andorra',
     AE: 'United Arab Emirates',
@@ -302,12 +306,16 @@
           document.querySelector('div.catalog-legal-notice').insertAdjacentHTML(
             'beforeend',
             `<p>Label: ${albumData.label}</p>
-             <p>UPC: ${albumData.upc}</p>`
+             <p>UPC: ${albumData.upc}${
+              showMusicBrainzLookup
+                ? ` - <a href="https://musicbrainz.org/search?query=barcode%3A${albumData.upc}&type=release&limit=25&method=advanced" target="_blank">Search on MusicBrainz</a>`
+                : ''
+            }</p>`
           );
 
           // album availability
           albumContainer.insertAdjacentHTML('beforeend', avalabilityElement);
-          embedGeoChart(albumCountries, albumContainer);
+          if (showWorldMap) embedGeoChart(albumCountries, albumContainer);
         }
       }, 200);
     }
