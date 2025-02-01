@@ -22,8 +22,15 @@ const YOUR_COUNTRY_CODE = 'GB';
 
 ![](images/highlight.png)
 
+### MusicBrainz Lookup (Optional)
+
+You can enable MusicBrainz Lookup by setting `showMusicBrainzLookup` to `true`. The link will appear next to the UPC code, allowing you to quickly find the release on MusicBrainz:
+
+![](images/MusicBrainz.gif)
+
 ## Script Changelog
 
+- 1.6 - add MusicBrainz lookup
 - 1.5 - code improvements
 - 1.4 - improve GeoChart script loading
 - 1.3 - add full country names
