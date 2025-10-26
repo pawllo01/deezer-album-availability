@@ -8,7 +8,7 @@ Show in which countries the album is available and in which it is unavailable. A
 
 Install [the script](https://github.com/pawllo01/deezer-album-availability/raw/main/deezer-album-availability.user.js) using [Tampermonkey](https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo) or another userscript manager.
 
-If you're using Tampermonkey, make sure to enable Developer Mode. - [tutorial](https://www.tampermonkey.net/faq.php?locale=en#Q209)
+_For users of the Tampermonkey extension (version 5.3+) in a Chrome-based browser, enabling either the **"Allow User Scripts" toggle** (available in Chrome 138+ via extension settings) or **Developer Mode** is required._ - [tutorial](https://www.tampermonkey.net/faq.php?locale=en#Q209)
 
 https://github.com/user-attachments/assets/def60702-08ef-451e-981c-327666806646
 
